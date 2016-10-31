@@ -7,6 +7,7 @@ package shift;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 
@@ -18,15 +19,63 @@ public class Toolbox
 {   
     
     public static BasicStroke worldStroke = new BasicStroke((float)(1), BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
-    public static Color grassColor = new Color(14, 155, 14);
+   
+    public static final Color defaultSnowColor = new Color(251, 251, 251);
+    public static Color grassColor = defaultSnowColor;//new Color(14, 155, 14);
+    public static final Color defaultGrassColor = new Color(14, 155, 14);
+    public static BufferedImage defaultGrassImage, defaultSnowImage;
+    public static WorldPanel worldPanel;
+    public static Player player;
+    public static double lowShade = 0.1;
+    public static double highShade = 0.2;
+    //public static double maxNightShade = 0.25;
+    //public static double nightShadeAdd = 0;
+    
+    public Toolbox(WorldPanel wpIn, Player playerIn)
+    {
+        worldPanel = wpIn;
+        player = playerIn;
+        try{
+            BufferedImage snow = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB);
+            Graphics g = snow.getGraphics();
+            g.setColor(new Color(251, 251, 251));
+            g.fillRect(0,0, 256, 256);
+            defaultGrassImage = ImageIO.read(WorldPanel.class.getClassLoader().getResourceAsStream("Images/Grass5.png"));
+            defaultSnowImage = snow;//ImageIO.read(WorldPanel.class.getClassLoader().getResourceAsStream("Images/Grass5.png"));
+            if(wpIn.getDayNight().getSeason().equals("winter"))
+            {
+                Grass.lowGrassShade = Grass.defaultLowGrassSnowShade;//defaultSnowColor;
+                grassColor = defaultSnowColor;
+            }else{
+                Grass.lowGrassShade = Grass.defaultLowGrassShade;
+                grassColor = defaultGrassColor;
+            }
+            //grassTexture = new TexturePaint(grassImage, new Rectangle(0, 0, 256, 256));
+        }catch(Exception e)
+        {
+            System.err.println(e);
+        }
+    }
+    public Toolbox()
+    {
+        
+    }
+    
+     public static void setToolboxPlayer(Player p){player = p;}
+     public static void setWorldPanel(WorldPanel wpIn){worldPanel = wpIn;}
     
     
     
-    public double distortedHeight(int heightIn)//one of the distortedHeights is redundant...
+    public Player getPlayer()
+    {
+        return player;
+    }
+    
+    public double distortedHeight(double heightIn)//one of the distortedHeights is redundant...
     {
         return Math.sin(WorldPanel.rotation)*heightIn;
     }  
-    public double scaledDistortedHeight(int heightIn)
+    public double scaledDistortedHeight(double heightIn)
     {
         return WorldPanel.scale * distortedHeight(heightIn);
     }

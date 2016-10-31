@@ -2,12 +2,11 @@ package shift;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 
 public class SpinTile extends Tile implements Runnable
 {
     public static final Color redAlpha = new Color(255, 0, 0, 100);
+    private Prism cylinder;
     private final int tileVertices = 32;
     private int[][] threadedCylinderPoints, threadedTopCylinderPoints;
     private int[][][] threadedSideArrays;
@@ -23,7 +22,7 @@ public class SpinTile extends Tile implements Runnable
         setSpinnable(true);
         diameter = diameterIn;
         rotation = WorldPanel.radSpin;
-        TileSorter.addTile(this);
+        //TileSorter.addTile(this);
         threadedCylinderPoints = cylinderPoints(tileVertices);
         threadedTopCylinderPoints = cylinderPoints(tileVertices);
         threadedSideArrays = calcSideArrays(tileVertices);
@@ -31,6 +30,7 @@ public class SpinTile extends Tile implements Runnable
         double[] vertex = {.5, .5};
         Path p = new DirtPath(this, vertex, 0, 1);
         thread.start();
+        cylinder = new Prism(getMiddleCoordX(), getMiddleCoordY(), 0, ((double)diameterIn/2.0)/Math.sqrt(2), inHeight, 32);
         
     }
     public SpinTile(int inX, int inY, int diameterIn, int inHeight, int angleIn) 
@@ -40,7 +40,7 @@ public class SpinTile extends Tile implements Runnable
         setSpinnable(true);
         diameter = diameterIn;
         rotation = WorldPanel.radSpin;
-        TileSorter.addTile(this);
+        //TileSorter.addTile(this);
         threadedCylinderPoints = cylinderPoints(tileVertices);
         threadedTopCylinderPoints = cylinderPoints(tileVertices);
         threadedSideArrays = calcSideArrays(tileVertices);
@@ -49,16 +49,25 @@ public class SpinTile extends Tile implements Runnable
         Path p = new DirtPath(this, vertex, 0, 1);
         thread.start();
         setSpin(((double)angleIn/180.0)*Math.PI);
+        cylinder = new Prism(getMiddleCoordX(), getMiddleCoordY(), 0, ((double)diameterIn/2.0)/Math.sqrt(2), inHeight, 32);
+    }
+    
+    @Override
+    public void drawReflections(Graphics g)
+    {
+        cylinder.shadeWaterReflections(g, cylinder.getVisibleSidePolygons());
     }
     @Override
     public void draw(Graphics g)
     {
-        Graphics2D g2 = (Graphics2D)g;
+        
+        //Graphics2D g2 = (Graphics2D)g;
         //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         g.setColor(Color.BLACK);
-        g.drawPolygon(threadedCylinderPoints[0],threadedCylinderPoints[1],32);
+        //g.drawPolygon(threadedCylinderPoints[0],threadedCylinderPoints[1],32);
         //g.setColor(getColor());
-        g2.setPaint(WorldPanel.grassTexture);
+        g.setColor(ColorPalette.getLerpColor(ColorPalette.shadeColor, ColorPalette.grassColor, ColorPalette.nightShadeAlpha));
+        Color c = g.getColor();
         g.fillPolygon(threadedTopCylinderPoints[0], threadedTopCylinderPoints[1], 32);
         drawSides(g);
         
@@ -70,11 +79,16 @@ public class SpinTile extends Tile implements Runnable
         }
         g.setColor(Color.BLACK);
         //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.drawPolygon(threadedTopCylinderPoints[0], threadedTopCylinderPoints[1], tileVertices);
+        //g.drawPolygon(threadedTopCylinderPoints[0], threadedTopCylinderPoints[1], tileVertices);
         for(Path p:getPathList())
         {
             p.draw(g);
         }
+        
+        
+        drawPlayer(g, Player.xPoint, Player.yPoint, Player.shadowExpand);
+        cylinder.shadeSidePolygons(g, cylinder.getVisibleSidePolygons(), c);
+        //cylinder.draw(g);
         //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         //g.setColor(Color.BLUE);
         //drawSpinLine(g);

@@ -14,44 +14,20 @@ import java.awt.Polygon;
  *
  * @author phusisian
  */
-public class TruncatedPyramid extends SolidShape
+public class Prism extends SolidShape
 {
-    private double topSideScale;
-    private FlatShape baseShape, topShape;
+    private FlatShape bottomShape, topShape;
     private Polygon[] threadedVisibleSidePolygons;
-    private int numSides;
-    public TruncatedPyramid(double inX, double inY, int inZPos, double radiusIn, int inHeight, int numSidesIn, double topSideScaleIn)
-    {
-        super(inX, inY, inZPos, 2*radiusIn, 2*radiusIn, inHeight);
-        numSides = numSidesIn;
-        topSideScale = topSideScaleIn;
-        baseShape = new FlatShape(inX, inY, inZPos, radiusIn, numSidesIn);
-        setTopShape(radiusIn * topSideScaleIn);
-        updateShapePolygons();
-        //topShape = new FlatShape(baseShape.getCenterCoordX(), baseShape.getCenterCoordY(), baseShape.getZPos() + inHeight, radiusIn*topSideScaleIn, radiusIn*topSideScaleIn, numSidesIn);
+    public Prism(double inX, double inY, int inZPos, double radiusIn, int inHeight, int numSidesIn) {
+        super(inX, inY, inZPos, radiusIn*2, radiusIn*2, inHeight);
+        bottomShape = new FlatShape(inX, inY, inZPos, radiusIn, numSidesIn);
+        topShape = new FlatShape(inX, inY, inZPos + inHeight, radiusIn, numSidesIn);
+        threadedVisibleSidePolygons = getVisibleSidePolygons();
     }
-    
-    public TruncatedPyramid(double inX, double inY, int inZPos, double radiusIn, int inHeight, int numSidesIn)
+
+    public Polygon[] getVisibleSidePolygons()
     {
-        super(inX, inY, inZPos, 2*radiusIn, 2*radiusIn, inHeight);
-        //topSideScale = topSideWidth/radiusIn;
-        numSides = numSidesIn;
-        baseShape = new FlatShape(inX, inY, inZPos, radiusIn, numSidesIn);
-        updateShapePolygons();
-        //topShape = new FlatShape(baseShape.getCenterCoordX(), baseShape.getCenterCoordY(), baseShape.getZPos() + inHeight, topSideRadius, topSideRadius, numSidesIn);
-    }
-    
-    public void setTopShape(double topSideRadius)
-    {
-        //setWidth(baseShape.getWidth());
-        //setLength(baseShape.getLength());
-        topSideScale = topSideRadius*2.0/baseShape.getWidth();
-        topShape = new FlatShape(baseShape.getCenterCoordX(), baseShape.getCenterCoordY(), baseShape.getZPos() + getHeight(), topSideRadius*2.0, topSideRadius*2.0, numSides);
-    }
-    
-    private Polygon[] getVisibleSidePolygons()
-    {
-        Point[] lowerSidePoints = baseShape.getVisibleSidePoints();
+        Point[] lowerSidePoints = bottomShape.getVisibleSidePoints();
         Point[] upperSidePoints = topShape.getVisibleSidePoints();
         Polygon[] giveReturn = new Polygon[lowerSidePoints.length-1];
         double[] topPoint =convertToPointWithHeight(getCenterCoordX(), getCenterCoordY(), getHeight());
@@ -66,13 +42,14 @@ public class TruncatedPyramid extends SolidShape
         }
         return giveReturn;
     }
+    
     @Override
-    public void updateShapePolygons()
+    void updateShapePolygons()
     {
         try{
-            baseShape.setCenterCoordX(getCenterCoordX());
-            baseShape.setCenterCoordY(getCenterCoordY());
-            baseShape.setZPos(getZPos());
+            bottomShape.setCenterCoordX(getCenterCoordX());
+            bottomShape.setCenterCoordY(getCenterCoordY());
+            bottomShape.setZPos(getZPos());
             topShape.setCenterCoordX(getCenterCoordX());
             topShape.setCenterCoordY(getCenterCoordY());
             topShape.setZPos(getZPos() + getHeight());
@@ -85,7 +62,7 @@ public class TruncatedPyramid extends SolidShape
             
         }
     }
-    
+
     @Override
     public void draw(Graphics g) 
     {
@@ -105,37 +82,7 @@ public class TruncatedPyramid extends SolidShape
             
         }
         g.drawPolygon(topShapePoints[0], topShapePoints[1], topShapePoints[0].length);
-        shadeSidePolygons(g, sidePolygons,c);
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    public void fillExcludingTop(Graphics g)
-    {
-        Color c = g.getColor();
-        try {
-            Polygon[] sidePolygons = threadedVisibleSidePolygons;//getVisibleSidePolygons();
-            
-
-            shadeSidePolygons(g, sidePolygons,c);
-            } catch (Exception e) {
-            }
-        /*
-        Color c = g.getColor();
-        //g.setColor(Color.BLUE);
-        Polygon[] sidePolygons = threadedVisibleSidePolygons;//getVisibleSidePolygons();
-        for(Polygon p : sidePolygons)
-        {
-            g.fillPolygon(p);
-        }
-        //int[][] topShapePoints = topShape.getShapePolyPoints();
-        //g.fillPolygon(topShapePoints[0], topShapePoints[1], topShapePoints[0].length);
-        g.setColor(Color.BLACK);
-        for(Polygon p : threadedVisibleSidePolygons)
-        {
-            g.drawPolygon(p);
-            
-        }
-        shadeSidePolygons(g, sidePolygons,c);*/
+        shadeSidePolygons(g, sidePolygons, c);
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
@@ -159,7 +106,7 @@ public class TruncatedPyramid extends SolidShape
             
         }
         
-        shadeSidePolygons(g, sidePolygons,c);
+        shadeSidePolygons(g, sidePolygons, c);
         }catch(Exception e)
         {
              System.out.println("TruncatedPyramid drawExcludingTop called with empty list!");//added because after tiles would be removed to be respawned, truncated pyramids still (for some reason) would try to draw themselves.
@@ -169,18 +116,46 @@ public class TruncatedPyramid extends SolidShape
     }
 
     @Override
-    void fill(Graphics g) 
+    public void fillExcludingTop(Graphics g)
     {
         Color c = g.getColor();
-        try {
-            Polygon[] sidePolygons = threadedVisibleSidePolygons;//getVisibleSidePolygons();
-            int[][] topShapePoints = topShape.getShapePolyPoints();
-            g.fillPolygon(topShapePoints[0], topShapePoints[1], topShapePoints[0].length);
-
-            shadeSidePolygons(g, sidePolygons,c);
-            } catch (Exception e) {
+        //g.setColor(Color.BLUE);
+        Polygon[] sidePolygons = threadedVisibleSidePolygons;//getVisibleSidePolygons();
+        try{
+            for(Polygon p : sidePolygons)
+            {
+                g.fillPolygon(p);
             }
-            //dotSortCorner(g);
+        
+        
+        
+        g.setColor(Color.BLACK);
+        for(Polygon p : threadedVisibleSidePolygons)
+        {
+            g.fillPolygon(p);
+            
+        }
+        
+        shadeSidePolygons(g, sidePolygons, c);
+        }catch(Exception e)
+        {
+             System.out.println("TruncatedPyramid drawExcludingTop called with empty list!");//added because after tiles would be removed to be respawned, truncated pyramids still (for some reason) would try to draw themselves.
+
+        }
+    }
+    @Override
+    public void fill(Graphics g) 
+    {
+        Color c = g.getColor();
+        Polygon[] sidePolygons = threadedVisibleSidePolygons;//getVisibleSidePolygons();
+        for(Polygon p : sidePolygons)
+        {
+            g.fillPolygon(p);
+        }
+        int[][] topShapePoints = topShape.getShapePolyPoints();
+        g.fillPolygon(topShapePoints[0], topShapePoints[1], topShapePoints[0].length);
+        
+        shadeSidePolygons(g, sidePolygons, c);
     }
 
     @Override
@@ -199,5 +174,6 @@ public class TruncatedPyramid extends SolidShape
         g.drawPolygon(topShapePoints[0], topShapePoints[1], topShapePoints[0].length);
         
     }
+    
     
 }

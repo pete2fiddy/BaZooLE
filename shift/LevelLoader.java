@@ -7,10 +7,8 @@ package shift;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 
 /**
  *
@@ -44,13 +42,13 @@ public class LevelLoader
         MergedBlockTiles.blockTiles.clear();
         MergedPaths.pathList.clear();
         MergedPaths.pathLinks.clear();
-        
-        TileDrawer.tileList.clear();
-        TileDrawer.waterDroplets.clear();
+        TileDrawer2.clearClouds();
+        TileDrawer2.tileList.clear();
+        TileDrawer2.clearWaterDroplets();
         TileDrawer2.tileList.clear();
         try{
-            TileSorter.holdList.clear();
-            TileSorter.tileList.clear();
+            //TileSorter.holdList.clear();
+            //TileSorter.tileList.clear();
         }catch(Exception e)
         {
             
@@ -102,10 +100,15 @@ public class LevelLoader
                         WorldPanel.worldTilesWidth = worldWidth;
                         WorldPanel.worldTilesHeight = worldHeight;
                         
-                        BlockTile bt1 = new BlockTile(-worldWidth/2, -worldHeight/2, 1, worldHeight, 5);
-                        BlockTile bt2 = new BlockTile((worldWidth/2) - 1, -worldHeight/2, 1, worldHeight, 5);
-                        BlockTile bt3 = new BlockTile(-worldWidth/2, (worldHeight/2)-1, worldWidth, 1, 5);
-                        BlockTile bt4 = new BlockTile(-worldWidth/2, (-worldHeight/2), worldWidth, 1, 5);
+                        BlockTile bt1 = new BlockTile(-worldWidth/2, -worldHeight/2, 1, worldHeight, 5, true);
+                        BlockTile bt2 = new BlockTile((worldWidth/2) - 1, -worldHeight/2, 1, worldHeight, 5, true);
+                        BlockTile bt3 = new BlockTile(-worldWidth/2, (worldHeight/2)-1, worldWidth, 1, 5, true);
+                        BlockTile bt4 = new BlockTile(-worldWidth/2, (-worldHeight/2), worldWidth, 1, 5, true);
+                        
+                        /*BlockTile bt1 = new BlockTile(-worldWidth/2, 1-(worldHeight/2), 1, worldHeight-2, 5, true);
+                        BlockTile bt2 = new BlockTile((worldWidth/2) - 1, 1-(worldHeight/2), 1, worldHeight-2, 5, true);
+                        BlockTile bt3 = new BlockTile(1-(worldWidth/2), (worldHeight/2)-1, worldWidth-2, 1, 5, true);
+                        BlockTile bt4 = new BlockTile(1-(worldWidth/2), (-worldHeight/2), worldWidth-2, 1, 5, true);*/
                     }else{
                         if(line.contains("Shift:"))
                         {   
@@ -113,7 +116,7 @@ public class LevelLoader
                             addSceneryToTile(st, line);
                             if(line.contains("Start"))
                             {
-                                System.out.println("Player start tile set to shift!");
+                                //System.out.println("Player start tile set to shift!");
                                 startTile = st;
                             }
                         }else if(line.contains("Spin:"))
@@ -121,7 +124,7 @@ public class LevelLoader
                             SpinTile st = spawnSpinTile(line);
                             if(line.contains("Start"))
                             {
-                                System.out.println("Player start tile set to spin!");
+                                //System.out.println("Player start tile set to spin!");
                                 startTile = st;
                             }
                         }
@@ -159,10 +162,10 @@ public class LevelLoader
                     {
                         //player.setFreezePlayer(false);
                         playerStartPath = startTile.getPathList().get(0);
+                        
                         //player.setX(playerStartPath.getCoordX());
                         //player.setY(playerStartPath.getCoordY());
                         movePlayerToStart = true;
-                        
                     }
                     currentLine++;
                     //System.out.println(line);
@@ -171,12 +174,24 @@ public class LevelLoader
             }
             sortTiles = true;
             player.setFreezePlayer(false);
+            
         }catch(Exception e)
         {
             System.out.println(e);
         }
-        isLoading = false;
         
+        WorldPanel.scale = (double)WorldPanel.screenWidth/(double)(WorldPanel.baseStraightUnit*Math.sqrt(2)*WorldPanel.worldTilesWidth);
+        WorldPanel.minScale = (double)WorldPanel.screenWidth/(double)(WorldPanel.baseUnit*WorldPanel.worldTilesWidth);
+        //WorldPanel.scale = 1;
+        TileDrawer2.populateClouds();
+        DayNight.addSeasonalScenery(DayNight.season);
+        
+        //setTileInfo();
+        
+        Mountains.fillMountainList();
+        Sun.setHeightWithScale(WorldPanel.minScale);
+        //DayNight.spawnSceneryOnTileType(BlockTile.class, 1.0, "Tree");
+        isLoading = false;
     }
     
     private static LevelEndTile spawnLevelEndTile(String line)
@@ -245,7 +260,7 @@ public class LevelLoader
             
             double[] pathValues = getPathValues(line.substring(line.indexOf("Path: ", lastPathIndex+1) + "Path: ".length(), line.indexOf(" |", lastPathIndex+1)));
             String curLine = line.substring(lastPathIndex, line.indexOf(" |", lastPathIndex + 1));
-            System.out.println(curLine);
+            //System.out.println(curLine);
             lastPathIndex = line.indexOf(" |", lastPathIndex)+1;//line.indexOf(" |", lastPathIndex);//line.indexOf(" |", line.indexOf("Path: ", lastPathIndex));//line.indexOf("Path: ", lastPathIndex)+ "Path: ".length();
             //System.out.println(lastPathIndex);
             if(!curLine.contains("Straight"))
@@ -259,6 +274,14 @@ public class LevelLoader
             //here
         }
         return thisTile;
+    }
+    
+    private void setTileInfo()
+    {
+        for(int i = 0; i < TileDrawer2.tileList.size(); i++)
+        {
+            TileDrawer2.tileList.get(i).setPlayer(player);
+        }
     }
     
     private static SpinTile spawnSpinTile(String line)

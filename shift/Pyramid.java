@@ -23,7 +23,7 @@ public class Pyramid extends SolidShape
     
     public Pyramid(double inX, double inY, int inZPos, double radiusIn, int inHeight, int numSidesIn) 
     {
-        super(inX, inY, inZPos, radiusIn, radiusIn, inHeight);
+        super(inX, inY, inZPos, radiusIn*2, radiusIn*2, inHeight);
         numSides = numSidesIn;
         polyBase = new FlatShape(inX, inY, inZPos, radiusIn, numSidesIn);
         updateShapePolygons();
@@ -68,6 +68,7 @@ public class Pyramid extends SolidShape
     @Override
     void draw(Graphics g) 
     {
+        Color c = g.getColor();
         //g.setColor(Color.BLUE);
         //Polygon[] sidePolygons = getVisibleSidePolygons();
         for(Polygon p : threadedVisibleSidePolygons)
@@ -82,13 +83,44 @@ public class Pyramid extends SolidShape
             g.drawPolygon(p);
             
         }
-        shadeSidePolygons(g, threadedVisibleSidePolygons);
+        shadeSidePolygons(g, threadedVisibleSidePolygons, c);
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    public void fillExcludingTop(Graphics g)
+    {
+        fill(g);
     }
     
     public void drawExcludingTop(Graphics g)
     {
+         System.err.println("drawExcludingTop not usable with pyramids (pyramid without a top is just a base)");
+    }
+
+    @Override
+    void fill(Graphics g) {
+        Color c = g.getColor();
+        //g.setColor(Color.BLUE);
+        //Polygon[] sidePolygons = getVisibleSidePolygons();
+        /*for(Polygon p : threadedVisibleSidePolygons)
+        {
+            g.fillPolygon(p);
+            
+        }*/
         
+        
+        shadeSidePolygons(g, threadedVisibleSidePolygons,c);
+    }
+
+    @Override
+    void stroke(Graphics g) 
+    {
+        g.setColor(Color.BLACK);
+        for(Polygon p : threadedVisibleSidePolygons)
+        {
+            g.drawPolygon(p);
+            
+        }
     }
 
     

@@ -7,7 +7,6 @@ import java.awt.Graphics2D;
 /*
 Lake is a scenery extension. Holds lakes in tiles.
 */
-
 public class Lake extends Scenery implements Runnable
 {
     private final Color dirtBrown = new Color(87, 59, 12), lakeBlue = new Color(30, 144, 255) ;//instance finals for lake color and dirt color 
@@ -108,15 +107,15 @@ public class Lake extends Scenery implements Runnable
     {
         int[][][] points = new int[2][2][4];
         int[][][] pondPolygons = getPondPolygons();
-        if(WorldPanel.spinQuadrant() == 1)
+        if(WorldPanel.getSpinQuadrant() == 1)
         {
             points[0]=pondPolygons[3];
             points[1]=pondPolygons[0];
-        }else if(WorldPanel.spinQuadrant() == 2)
+        }else if(WorldPanel.getSpinQuadrant() == 2)
         {
             points[0]=pondPolygons[2];
             points[1]=pondPolygons[3];
-        }else if(WorldPanel.spinQuadrant() == 3)
+        }else if(WorldPanel.getSpinQuadrant() == 3)
         {
             points[0]=pondPolygons[1];
             points[1]=pondPolygons[2];
@@ -134,15 +133,15 @@ public class Lake extends Scenery implements Runnable
     {
         int[][][] points = new int[2][2][4];
         int[][][] pondPolygons = getPondPolygons().clone();
-        if(WorldPanel.spinQuadrant() == 1)
+        if(WorldPanel.getSpinQuadrant() == 1)
         {
             points[0]=pondPolygons[1];
             points[1]=pondPolygons[2];
-        }else if(WorldPanel.spinQuadrant() == 2)
+        }else if(WorldPanel.getSpinQuadrant() == 2)
         {
             points[0]=pondPolygons[0];
             points[1]=pondPolygons[1];
-        }else if(WorldPanel.spinQuadrant() == 3)
+        }else if(WorldPanel.getSpinQuadrant() == 3)
         {
             points[0]=pondPolygons[0];
             points[1]=pondPolygons[3];
@@ -158,6 +157,7 @@ public class Lake extends Scenery implements Runnable
     */
     public void draw(Graphics g) 
     {
+        run();
         Graphics2D g2 = (Graphics2D)g;
         g.setColor(lakeBlue);
         g.fillPolygon(threadedBottomPondPoints[0], threadedBottomPondPoints[1], 4);
@@ -168,7 +168,7 @@ public class Lake extends Scenery implements Runnable
         }
         g.setColor(Color.BLACK);
         g.drawPolygon(threadedVisiblePondPolygons[1][0], threadedVisiblePondPolygons[1][1], 4);
-        g2.setPaint(WorldPanel.grassTexture);
+        g.setColor(ColorPalette.grassColor);
         //g.setColor(getBoundTile().getColor());
         for(int i = 0; i < 2; i++)
         {

@@ -5,7 +5,7 @@ import java.awt.Graphics;
 public abstract class Scenery extends Toolbox implements Runnable
 {
     private Tile boundTile;
-    private double offsetX, offsetY;
+    private double offsetX = 0, offsetY = 0;
     private Thread thread;
     private double threadedX, threadedY, threadedThetaFromCenter, threadedRadius;
     private double boundingBoxWidth = 0, boundingBoxLength = 0;
@@ -21,13 +21,45 @@ public abstract class Scenery extends Toolbox implements Runnable
         threadedRadius = getRadius();
         thread = new Thread(this);
         thread.start();
-        tileIn.addScenery(this);
         
     }
     
     public void setBoundingBoxDimensions(double widthIn, double lengthIn)
     {
         boundingBoxWidth = widthIn; boundingBoxLength = lengthIn;
+    }
+    
+    public void setBoundTile(Tile t)
+    {
+        t.addAssortedScenery(this);
+        boundTile = t;
+    }
+    
+    public boolean isVisible(Graphics g)
+    {
+        int x = (int)getX(); int y = (int)getY();
+        if(g.getClip().contains(x, y))
+        {
+            return true;
+            //return !RenderCut.pointCovered(getBoundTile().getIndex(), x, y);
+        }
+        return false;
+    }
+    
+    public double getBoundingBoxWidth()
+    {
+        return boundingBoxWidth;
+    }
+    
+    public double getBoundingBoxLength()
+    {
+        return boundingBoxLength;
+    }
+    
+    public void addUnitsToOffset(double xAdd, double yAdd)
+    {
+        offsetX += xAdd/(double)boundTile.getRawWidth();
+        offsetY += yAdd/(double)boundTile.getRawLength();
     }
     
     public double getSortDistanceConstant()
@@ -62,6 +94,41 @@ public abstract class Scenery extends Toolbox implements Runnable
        
         return constant;
         
+    }
+    
+    public double getMiddleSortDistanceConstant()
+    {
+        double cornerX, cornerY;
+        int slope;
+        double constant;
+        if(WorldPanel.radSpin > 0 && WorldPanel.radSpin <= (Math.PI/2.0))
+        {
+            cornerX = getCoordX();
+            cornerY = getCoordY();
+            slope = -1;
+            constant = (cornerY-(slope*cornerX));
+        }else if(WorldPanel.radSpin > Math.PI/2.0 && WorldPanel.radSpin <= (Math.PI))
+        {
+            cornerX = getCoordX();
+            cornerY = getCoordY();
+            slope = 1;
+             constant = -(cornerY-(slope*cornerX));
+        }else if(WorldPanel.radSpin > Math.PI && WorldPanel.radSpin <= (3*Math.PI/2.0))
+        {
+            cornerX = getCoordX();
+            cornerY = getCoordY();
+            slope = -1;
+            constant = -(cornerY-(slope*cornerX));
+        }else{
+            cornerX = getCoordX();
+            cornerY = getCoordY();
+            slope = 1;
+            constant = cornerY-(slope*cornerX);
+        }
+       
+        return constant;
+        
+    
     }
     public double getCoordX(){return boundTile.getRawX() + (offsetX * boundTile.getRawWidth());}
     public double getCoordY(){return boundTile.getRawY() + (offsetY * boundTile.getRawLength());}

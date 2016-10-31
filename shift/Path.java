@@ -5,7 +5,6 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 /*
 Is a path that player can walk across to complete objectives. Is a special type of scenery which is traversable. All paths are traversable by default, however in the future i may want to make this toggleable.
@@ -36,7 +35,7 @@ public abstract class Path extends Scenery implements Runnable
         pathPolygon = new Polygon(threadedPathPolygon[0], threadedPathPolygon[1], 6);
         updateLinks();
         MergedPaths.pathList.add(this);//adds itself to MergedPath's list of paths.
-        tileIn.addPath(this);//adds itself to its bound tile's list of baths.
+        tileIn.addPath(this);//adds itself to its bound tile's list of paths.
         //tileIn.getAssortedScenery().remove(this);
         pathWidth = pathWidth/Math.sqrt(tileIn.getRawWidth() * tileIn.getRawLength());//to make path widths uniform across multi-sized tiles. May need to be fixed for odd-shaped, non-square tiles.
     }
@@ -62,7 +61,7 @@ public abstract class Path extends Scenery implements Runnable
         isStraight = true;
         updateLinks();
         MergedPaths.pathList.add(this);//adds itself to MergedPath's list of paths.
-        tileIn.addPath(this);//adds itself to its bound tile's list of baths.
+        tileIn.addPath(this);//adds itself to its bound tile's list of paths.
         pathWidth = pathWidth/Math.sqrt(tileIn.getRawWidth() * tileIn.getRawLength());//to make path widths uniform across multi-sized tiles. May need to be fixed for odd-shaped, non-square tiles.
     }
     
@@ -72,7 +71,7 @@ public abstract class Path extends Scenery implements Runnable
     /*
     updates the links's list so that the hangover points for path connections are accurate with world movement.
     */
-    private void updateLinks()//make sure it ALWAYS makes proper links for its path -- haven't tried every path combination yet. (make sure where links are being placed makes sense)
+    public void updateLinks()//make sure it ALWAYS makes proper links for its path -- haven't tried every path combination yet. (make sure where links are being placed makes sense)
     {
         if(!isStraight)
         {
@@ -140,6 +139,11 @@ public abstract class Path extends Scenery implements Runnable
         
     }
     
+    public boolean pathOnCoord(double xIn, double yIn)
+    {
+        double[] points = convertToPoint(xIn, yIn);
+        return (pathPolygon.contains(points[0], points[1]));
+    }
     
     public double getZeroX()
     {
@@ -287,6 +291,7 @@ public abstract class Path extends Scenery implements Runnable
         return color;
     }
     
+    public void setPathPolygon(Polygon p){pathPolygon = p;}
     public void setPathWidth(double d){pathWidth = d;}
     
     /*
@@ -411,7 +416,7 @@ public abstract class Path extends Scenery implements Runnable
     */
     public boolean pathOnPoint(double x, double y)
     {
-        if(pathPolygon.contains(x, y))
+        if(getPathPolygon().contains(x, y))//uses getPathPolygon so i can override a tile's path polygon if it is oddly shaped (level end path for example)
         {
             //System.out.println("was called");
             return true;

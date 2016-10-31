@@ -1,10 +1,8 @@
 package shift;
 
-import java.awt.BasicStroke;
 import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 
 public class Tree extends Scenery implements Runnable
 {
@@ -150,19 +148,19 @@ public class Tree extends Scenery implements Runnable
     {
         int[][][] polyPoints = new int[2][2][4];
         int[][][] trunkPoly = threadedTrunkPolygons;
-        if(WorldPanel.spinQuadrant() == 1)//1 and 2
+        if(WorldPanel.getSpinQuadrant() == 1)//1 and 2
         {
             polyPoints[0][0] = trunkPoly[1][0];//polyX one
             polyPoints[0][1] = trunkPoly[1][1];
             polyPoints[1][0] = trunkPoly[2][0];
             polyPoints[1][1] = trunkPoly[2][1];
-        }else if(WorldPanel.spinQuadrant() == 2)//0 and 1
+        }else if(WorldPanel.getSpinQuadrant() == 2)//0 and 1
         {
             polyPoints[0][0] = trunkPoly[0][0];//polyX one
             polyPoints[0][1] = trunkPoly[0][1];
             polyPoints[1][0] = trunkPoly[1][0];
             polyPoints[1][1] = trunkPoly[1][1];
-        }else if(WorldPanel.spinQuadrant() == 3)//3 and 0
+        }else if(WorldPanel.getSpinQuadrant() == 3)//3 and 0
         {
             polyPoints[0][0] = trunkPoly[3][0];//polyX one
             polyPoints[0][1] = trunkPoly[3][1];
@@ -181,19 +179,19 @@ public class Tree extends Scenery implements Runnable
     {
         int[][][] polyPoints = new int[2][2][4];
         int[][][] leavesPoly = threadedLeavesPolygons;
-        if(WorldPanel.spinQuadrant() == 1)//1 and 2
+        if(WorldPanel.getSpinQuadrant() == 1)//1 and 2
         {
             polyPoints[0][0] = leavesPoly[1][0];
             polyPoints[0][1] = leavesPoly[1][1];
             polyPoints[1][0] = leavesPoly[2][0];
             polyPoints[1][1] = leavesPoly[2][1];
-        }else if(WorldPanel.spinQuadrant() == 2)//0 and 1
+        }else if(WorldPanel.getSpinQuadrant() == 2)//0 and 1
         {
             polyPoints[0][0] = leavesPoly[0][0];
             polyPoints[0][1] = leavesPoly[0][1];
             polyPoints[1][0] = leavesPoly[1][0];
             polyPoints[1][1] = leavesPoly[1][1]; 
-        }else if(WorldPanel.spinQuadrant() == 3)//3 and 0
+        }else if(WorldPanel.getSpinQuadrant() == 3)//3 and 0
         {
             polyPoints[0][0] = leavesPoly[3][0];
             polyPoints[0][1] = leavesPoly[3][1];
@@ -212,50 +210,36 @@ public class Tree extends Scenery implements Runnable
     public void draw(Graphics g)//fix so that polygon arrays ONLY have the polygons that should be drawn for the current quadrant. Also, trying to only draw the "visible" parts of the leaves doesn't work because of its shape -- can result in a side missing.
     {
         
+        run();
         Graphics2D g2 = (Graphics2D)g;
-        /*
-        float dash1[] = {3.0f};
         
-        g2.setStroke(new BasicStroke((float)(1), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
-        
-        for(int i = 0; i < 2; i++)//fill and stroke trunk
-        {
-            g.setColor(new Color(86, 53, 17));
-            g.fillPolygon(threadedVisibleTrunkPolygons[i][0],threadedVisibleTrunkPolygons[i][1],4);
-            g.setColor(Color.BLACK);
-            g.drawPolygon(threadedVisibleTrunkPolygons[i][0],threadedVisibleTrunkPolygons[i][1],4);
-        }
-        
-        //g.setColor(getBoundTile().getColor());
-        g2.setPaint(WorldPanel.leavesTexture);
-        for(int i = 0; i < 4; i++)//fill leaves
-        {
-            g.fillPolygon(threadedLeavesPolygons[i][0], threadedLeavesPolygons[i][1],3);
-        }
-        
-        g.setColor(Color.BLACK);
-        //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        for(int i = 0; i < 2; i++)
-        {
-            g.drawPolygon(threadedVisibleLeavesPolygons[i][0], threadedVisibleLeavesPolygons[i][1],3);
-        }
-        
-        g2.setStroke(Toolbox.worldStroke);
-        */
+        treeShapes[1].fillDropShadow(g, getBoundTile().getHeight());
         g.setColor(new Color(86, 53, 17));
-        treeShapes[0].draw(g);
-        
+        treeShapes[0].fill(g);
+        RectPrism ss = (RectPrism)treeShapes[0];
+        ss.paintShading(g);
         for(int i = 1; i < treeShapes.length; i++)
         {
-            g2.setPaint(WorldPanel.leavesTexture);
+            g.setColor(ColorPalette.grassColor);
+            //g.setColor(new Color(251, 251, 251));
+            //g2.setPaint(WorldPanel.leavesTexture);
+            
             if(i < treeShapes.length -1)
             {
-                treeShapes[i].drawExcludingTop(g);
+                treeShapes[i].fillExcludingTop(g);//drawExcludingTop(g);
+                if(i != 1)
+                {
+                    treeShapes[i].fillDropShadowOntoSolid(g, treeShapes[i-1].getVisibleShapeSidePolygons(), treeShapes[i].getHeight()/4, ColorPalette.grassColor);
+                }
+                //g.drawString(Double.toString(treeShapes[i].getWidth()), (int)treeShapes[i].convertToPointX(treeShapes[i].getCenterCoordX(), treeShapes[i].getCenterCoordY()), (int)treeShapes[i].convertToPointY(treeShapes[i].getCenterCoordX(), treeShapes[i].getCenterCoordY()));
             }else{
-                treeShapes[i].draw(g);
+                treeShapes[i].fill(g);
+                treeShapes[i].fillDropShadowOntoSolid(g, treeShapes[i-1].getVisibleShapeSidePolygons(), treeShapes[i].getHeight()/4, ColorPalette.grassColor);
+                //System.out.println(treeShapes[i-1].getVisibleShapeSidePolygons() == null);
             }
             
         }
+        
         //.setColor(Color.WHITE);
         //g.drawString(Double.toString((int)(100.0*getSortDistanceConstant())/100.0), (int)getX(), (int)getY());
         //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
@@ -280,18 +264,21 @@ public class Tree extends Scenery implements Runnable
         threadedLeavesPolygons = getLeavesPolygons().clone();
         threadedVisibleTrunkPolygons = getVisibleTrunkPolygons().clone();
         threadedVisibleLeavesPolygons = getVisibleLeavesPolygons().clone();*/
-        int heightCount = 0;
-        
-        
-        for(SolidShape s : treeShapes)
-        {
-            
-            s.setCenterCoordX(getCoordX());
-            s.setCenterCoordY(getCoordY());
-            s.setZPos(getBoundTile().getHeight() + heightCount);
-            s.updateShapePolygons();
-            heightCount += 10;
-        }
+        //if(getBoundTile().getInTransit())
+        //{
+            int heightCount = 0;
+
+
+            for(SolidShape s : treeShapes)
+            {
+                //System.out.println("called");
+                s.setCenterCoordX(getCoordX());
+                s.setCenterCoordY(getCoordY());
+                s.setZPos(getBoundTile().getHeight() + heightCount);
+                s.updateShapePolygons();
+                heightCount += 10;
+            }
+       //}
         
         
     }
